@@ -1,2 +1,1 @@
-# cfsd-slam
-Visual Inertial SLAM
+# state-estimation / SLAM

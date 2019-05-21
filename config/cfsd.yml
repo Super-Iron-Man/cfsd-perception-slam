@@ -1,0 +1,225 @@
+%YAML:1.0
+# Camera image resolution, 2560x720(30Hz), 1344x376(60Hz)
+
+################################################################################
+##### OpenDLV settings #####
+# od4 communication
+ellipseID: 112 # sender stamp of proxy-ellipse2n
+# ID: # sender stamp of this microservice
+
+# Read from shared memory
+#readWidth: 1344
+#readHeight: 376
+#readFrequency: 60
+readWidth: 2560
+readHeight: 720
+readFrequency: 30
+
+################################################################################
+##### Sensor settings #####
+# Resolution and frequency used in processing
+imageWidth: 672
+imageHeight: 376
+cameraFrequency: 10
+# Standard deviation of pixel-level measurement
+stdX: 0.5
+stdY: 0.5
+
+# The following camera parameters is based on 1344x376 resolution (i.e. 672x376 each side)
+# Left camera intrinsics
+camLeft: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [ 349.891, 0, 334.352,
+            0, 349.891, 187.937,
+            0, 0, 1 ]
+distLeft: !!opencv-matrix
+    rows: 5
+    cols: 1
+    dt: d
+    data: [ -0.173042, 0.0258831, 0, 0, 0 ]
+
+# Right camera intrinsics
+camRight: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [ 350.112, 0, 345.88,
+            0, 350.112, 189.891,
+            0, 0, 1 ]
+distRight: !!opencv-matrix
+    rows: 5
+    cols: 1
+    dt: d
+    data: [ -0.174209, 0.026726, 0, 0, 0 ]
+
+# Camera extrinsics
+rotationLeftToRight: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [ 0.999779, 0.00107367, 0.0210109, -0.00135176, 0.999912, 0.0132256, -0.0209948, -0.0132511, 0.999692 ]
+translationLeftToRight: !!opencv-matrix
+    rows: 3
+    cols: 1
+    dt: d
+    data: [ -0.12, 0, 0 ]
+
+# IMU paramteres
+## IMU coordinate system    camera coordinate system
+##            / x                     / z
+##           /                       /
+##          ------ y                ------ x
+##          |                       |
+##          | z                     | y
+samplingRate: 200 # [Hz]
+# (cfsd) IMU noise and bias factor
+accNoise: 0.000057 # [g*sqrt(s)] accelerometer measurement noise density, 57 micro-g/sqrt(Hz) from "Ellipse_Series_Leaflet.pdf"
+gyrNoise: 4.3633e-5 # [rad/sqrt(s)] gyroscope measurement noise density, 0.15 degree/sqrt(hr)
+accBias: 0.000014 # [g] accelerometer bias random walk noise, 14 micro-g
+gyrBias: 3.3937e-5 # [rad/s] gyroscope bias random walk noise, 7 degree/h
+
+# Need to estimate extrinsics or not:
+# 0 - the given extrinsics below is good enough, will be kept fixed
+# 1 - the given extrinsics below is just an initial guess, need to be optimized
+estimateExtrinsics: 1
+# Camera (left) and imu extrinsics
+rotationImuToCamera: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [ 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0 ]
+translationImuToCamera: !!opencv-matrix
+    rows: 3
+    cols: 1
+    dt: d
+    data: [ 0.06, 0.44, 1.386 ]
+
+################################################################################
+##### Feature detection settings #####
+delay: 10
+
+# Use ORB of OpenCV or ORB_SLAM2
+cvORB: 0 # default: not use OpenCV ORB
+
+# ORB feature detector parameters
+numberOfFeatures: 1200
+scaleFactor: 1.2
+levelPyramid: 8
+
+# (OpenCV) ORB Detector
+edgeThreshold: 31
+scoreType: 1 # 0 is ORB::HARRIS_SCORE, 1 is ORB::FAST_SCORE
+patchSize: 31
+fastThreshold: 20
+# For OpenCV ORB, detect in several grids to make the distribution of keypoints more evenly
+gridRow: 1
+gridCol: 1
+
+# (ORB_SLAM2) ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast			
+iniThFAST: 20
+minThFAST: 7
+
+# Feature matching parameters
+matchRatio: 2    # the distance of a good match should be smaller than minDist*matchRatio
+minMatchDist: 30.0 # another number for selecting good matches, from experience
+maxVerticalPixelDist: 0.1 # selecting good matching by the vertical coordinates since image have been rectified
+maxFeatureAge: 8  # Max age of a feature
+maxDepth: 20 # Max depth or distance w.r.t camera
+
+# Image mask (we don't want to detect keypoints in the sky and vehicle body)
+#     #########################
+#     |-----------------------|
+#  h1 |-----------------------|
+#     |                       |
+#     |                       | (region of interest)
+#     |                       |
+#  h2 |-----------------------|
+#     |-----------------------|
+#     #########################
+## these numbers are obtained after undistorted and rectified for 1344x376 resolution
+h1: 185
+h2: 320
+
+################################################################################
+##### Tracking settings #####
+#max_num_lost: 10
+#min_inliers: 10
+
+# Keyframe selection
+keyframeRotation: 0.2
+keyframeTranslation: 0.1
+maxImuTime: 2
+# nearPointThres:
+
+# Reinitialization if bias is corrupted
+maxGyrBias: 0.1
+maxAccBias: 0.6
+
+# Initialize with SfM
+initializeWithSfm: 1
+
+# SfM frame selection
+sfmRotation: 0
+sfmTranslation: 0
+
+# Method for solving PnP problem:
+# 0-SOLVEPNP_ITERATIVE (default)
+# 1-SOLVEPNP_EPNP (Efficient Perspective-n-Point Camera Pose Estimation)
+# 2-SOLVEPNP_P3P (Complete Solution Classification for the Perspective-Three-Point Problem)
+# 3-SOLVEPNP_DLS (A Direct Least-Squares (DLS) Method for PnP)
+# 4-SOLVEPNP_UPNP (Exhaustive Linearization for Robust Camera Pose and Focal Length Estimation)
+# 5-SOLVEPNP_AP3P (An Efficient Algebraic Solution to the Perspective-Three-Point Problem) [not available in OpenCV 3.2.0]
+solvePnP: 0
+
+################################################################################
+##### Optimization settings #####
+minimizer_progress_to_stdout: 0
+max_num_iterations: 20 # default: 50
+max_solver_time_in_seconds: 10 # default: 1e6
+num_threads: 4 # default: 1
+check_gradients: 0
+
+# Gravity magnitude for initial accelerometer correction.
+gravity: 9.81734 # [m/s^2] gravitational acceleration (might need slightly modification in case of different location)
+
+# Prior covariance factor
+priorWeight: 1e-5
+
+# Loop Closure
+loopClosure: 0
+
+# Global optimization
+globalOptimize: 0
+
+################################################################################
+##### Loop closure settings #####
+vocabulary: ../config/vocabulary/ORBvoc.bin
+minFrameInterval: 40
+minScore: 0.01
+
+################################################################################
+##### Viewer settings #####
+viewScale: 1
+pointSize: 2
+landmarkSize: 2
+cameraSize: 0.4
+cameraLineWidth: 3
+lineWidth: 2
+viewpointX: -0.1
+viewpointY: 0
+viewpointZ: -10
+viewpointF: 2000
+background: 0 # 0-black, 1-white
+## world frame
+##     / x
+##    /
+##   ------ y
+##   |
+##   | z
+# set the up direction as AxisNegZ
+axisDirection: 5 # 0-AxisNone, 1-AxisNegX, 2-AxisX, 3-AxisNegY, 4-AxisY, 5-AxisNegZ, 6-AxisZ
