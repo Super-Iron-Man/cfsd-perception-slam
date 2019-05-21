@@ -21,7 +21,7 @@ if(FOR_CFSD)
     project(cfsd-state-estimation)
 endif()
 
-option(FOR_EUROC "euroc state estimation" ON)
+option(FOR_EUROC "euroc state estimation" OFF)
 if(FOR_EUROC)
     add_definitions(-DEUROC)
     project(euroc-state-estimation)
