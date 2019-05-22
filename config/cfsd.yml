@@ -198,7 +198,7 @@ globalOptimize: 0
 
 ################################################################################
 ##### Loop closure settings #####
-vocabulary: ../config/vocabulary/ORBvoc.bin
+vocabulary: ./config/vocabulary/ORBvoc.bin
 minFrameInterval: 40
 minScore: 0.01
 

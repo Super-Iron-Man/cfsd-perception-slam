@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-FROM ruguangyou/alpine-opencv-ceres-sophus:v0.4 as builder
+FROM ruguangyou/alpine-opencv-ceres-sophus-dbow2:v0.5 as builder
 
 RUN echo http://dl-4.alpinelinux.org/alpine/v3.8/main > /etc/apk/repositories && \
     echo http://dl-4.alpinelinux.org/alpine/v3.8/community >> /etc/apk/repositories && \
@@ -36,7 +36,7 @@ WORKDIR /opt/sources
 RUN mkdir build && \
     cd build && \
     cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/tmp -D WITH_VIEWER=OFF -D WITH_IMSHOW=ON -D FOR_CFSD=ON .. && \
-    make -j4 && make install
+    make -j8 && make install
 
 FROM chrberger/cluon-amd64:latest
 MAINTAINER Christian Berger "christian.berger@gu.se"
@@ -57,5 +57,6 @@ RUN echo http://dl-4.alpinelinux.org/alpine/v3.8/main > /etc/apk/repositories &&
 
 WORKDIR /usr/bin
 COPY --from=builder /usr/local/lib64 /usr/lib
+COPY --from=builder /usr/local/lib /usr/lib
 COPY --from=builder /tmp/bin/cfsd-state-estimation .
 #ENTRYPOINT ["/usr/bin/cfsd-state-estimation"]
