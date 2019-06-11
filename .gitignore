@@ -1,3 +1,5 @@
-# ignore build/ and .vscode/ folder
+# ignore following directories
 build/
+bin/
+lib/
 .vscode/
