@@ -2,9 +2,15 @@
 
 namespace cfsd {
 
-VisualInertialSLAM::VisualInertialSLAM(const bool verbose) : 
-    _state(SYNCHRONIZING), _verbose(verbose), _gyr(), _acc(), _pCameraModel(), _pMap(), _pLoopClosure(), _pFeatureTracker(), _pOptimizer(), _pImuPreintegrator() {
-    
+VisualInertialSLAM::VisualInertialSLAM(const bool verbose)
+: _state(SYNCHRONIZING)
+, _verbose(verbose)
+, _pCameraModel()
+, _pMap()
+, _pLoopClosure()
+, _pFeatureTracker()
+, _pOptimizer()
+, _pImuPreintegrator() {    
     _pCameraModel = std::make_shared<CameraModel>();
 
     _pMap = std::make_shared<Map>(_pCameraModel, verbose);
@@ -37,7 +43,6 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
     cv::remap(grayR, imgR, _pCameraModel->_rmap[1][0], _pCameraModel->_rmap[1][1], cv::INTER_LINEAR);
     auto end = std::chrono::steady_clock::now();
     if (_verbose) std::cout << "remap elapsed time: " << std::chrono::duration<double, std::milli>(end-start).count() << "ms" << std::endl << std::endl;
-
     
     switch (_state) {
         case OK:
@@ -259,7 +264,7 @@ void VisualInertialSLAM::saveResults() {
     ofs << "timestamp,qw,qx,qy,qz,px,py,pz,vx,vy,vz,bgx,bgy,bgz,bax,bay,baz\n";
     Eigen::Quaterniond q;
     Eigen::Vector3d p, v, bg, ba;
-    for (int i = 1; i < _pMap->_pKeyframes.size(); i++) {
+    for (unsigned i = 1; i < _pMap->_pKeyframes.size(); i++) {
         const cfsd::Ptr<Keyframe>& frame = _pMap->_pKeyframes[i];
 
         ofs << frame->timestamp << ",";
@@ -291,7 +296,7 @@ void VisualInertialSLAM::saveResults() {
         // Write estimated states to file.
         std::ofstream ofs1("fullBA.csv", std::ofstream::out);
         ofs1 << "timestamp,qw,qx,qy,qz,px,py,pz,vx,vy,vz,bgx,bgy,bgz,bax,bay,baz\n";
-        for (int i = 1; i < _pMap->_pKeyframes.size(); i++) {
+        for (unsigned i = 1; i < _pMap->_pKeyframes.size(); i++) {
             const cfsd::Ptr<Keyframe>& frame = _pMap->_pKeyframes[i];
 
             ofs1 << frame->timestamp << ",";
@@ -325,18 +330,21 @@ void VisualInertialSLAM::saveResults() {
 #ifdef SHOW_IMG
 void VisualInertialSLAM::showImage(cv::Mat& imgL, const double& dt) {
     // Show pixels and reprojected pixels after optimization.
+    #ifdef CFSD
     int yOffset = _pFeatureTracker->_cropOffset;
+    #endif
+
     const cfsd::Ptr<Keyframe>& latestFrame = _pMap->_pKeyframes.back();
     for (auto mapPointID : latestFrame->mapPointIDs) {
         cfsd::Ptr<MapPoint> mp = _pMap->_pMapPoints[mapPointID];
         Eigen::Vector3d pixel_homo = _pCameraModel->_P_L.block<3,3>(0,0) * (_pCameraModel->_T_CB * (latestFrame->R.inverse() * (mp->position - latestFrame->p)));
         cv::Point2d& pixel = mp->pixels[_pMap->_pKeyframes.size()-1];
         #ifdef CFSD
-        cv::rectangle(imgL, cv::Point(pixel.x-4, pixel.y-4 + yOffset), cv::Point(pixel.x+4, pixel.y+4 + yOffset), cv::Scalar(0));
-        cv::circle(imgL, cv::Point(pixel_homo(0)/pixel_homo(2), pixel_homo(1)/pixel_homo(2) + yOffset), 3, cv::Scalar(255));
+        cv::rectangle(imgL, cv::Point(static_cast<int>(pixel.x-4), static_cast<int>(pixel.y-4 + yOffset)), cv::Point(static_cast<int>(pixel.x+4), static_cast<int>(pixel.y+4 + yOffset)), cv::Scalar(0));
+        cv::circle(imgL, cv::Point(static_cast<int>(pixel_homo(0)/pixel_homo(2)), static_cast<int>(pixel_homo(1)/pixel_homo(2) + yOffset)), 3, cv::Scalar(255));
         #else
-        cv::rectangle(imgL, cv::Point(pixel.x-4, pixel.y-4), cv::Point(pixel.x+4, pixel.y+4), cv::Scalar(0));
-        cv::circle(imgL, cv::Point(pixel_homo(0)/pixel_homo(2), pixel_homo(1)/pixel_homo(2)), 3, cv::Scalar(255));
+        cv::rectangle(imgL, cv::Point(static_cast<int>(pixel.x-4), static_cast<int>(pixel.y-4)), cv::Point(static_cast<int>(pixel.x+4), static_cast<int>(pixel.y+4)), cv::Scalar(0));
+        cv::circle(imgL, cv::Point(static_cast<int>(pixel_homo(0)/pixel_homo(2)), static_cast<int>(pixel_homo(1)/pixel_homo(2))), 3, cv::Scalar(255));
         #endif
     }
     cv::Mat out;

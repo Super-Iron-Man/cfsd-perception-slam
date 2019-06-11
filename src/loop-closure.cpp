@@ -2,9 +2,12 @@
 
 namespace cfsd {
 
-LoopClosure::LoopClosure(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<Optimizer>& pOptimizer, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose) : 
-    _db(), _pMap(pMap), _pOptimizer(pOptimizer), _pCameraModel(pCameraModel), _verbose(verbose) {
-    
+LoopClosure::LoopClosure(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<Optimizer>& pOptimizer, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose)
+: _db()
+, _pMap(pMap)
+, _pOptimizer(pOptimizer)
+, _pCameraModel(pCameraModel)
+, _verbose(verbose) {    
     std::string vocFile = Config::get<std::string>("vocabulary");
 
     // Load the vocabulary from binary file.
@@ -100,7 +103,7 @@ int LoopClosure::detectLoop(const cv::Mat& descriptorsMat, const int& frameID) {
     // ret[0] is the most similar image, so should set a higher score limit for it.
     if (frameID > _minFrameInterval && ret.size() > 0 && ret[0].Score > 3*_minScore) {
         // The rest are possible loop candidates.
-        for (int i = 1; i < ret.size(); i++) {
+        for (unsigned i = 1; i < ret.size(); i++) {
             if (ret[i].Score > _minScore) {
                 // Loop is found only if ret[0] and at least one ret[i] have scores higher than threshold.
                 findLoop = true;
@@ -112,7 +115,7 @@ int LoopClosure::detectLoop(const cv::Mat& descriptorsMat, const int& frameID) {
     // (earliest makes it more frames in between to optimize)
     int minFrameID = frameID;
     if (findLoop) {
-        for (int i = 0; i < ret.size(); i++)
+        for (unsigned i = 0; i < ret.size(); i++)
             if (ret[i].Id < minFrameID) 
                 minFrameID = ret[i].Id;
 

@@ -15,7 +15,7 @@ Viewer::Viewer() {
     viewpointZ = Config::get<float>("viewpointZ");
     viewpointF = Config::get<float>("viewpointF");
     axisDirection = Config::get<int>("axisDirection");
-    background = Config::get<float>("background");
+    background = Config::get<int>("background");
 }
 
 void Viewer::run() {
@@ -206,7 +206,7 @@ void Viewer::followBody(pangolin::OpenGlRenderState& s_cam) {
 void Viewer::pushRawPosition(const Eigen::Vector3d& p, const int& offset) {
     std::lock_guard<std::mutex> lockRawPosition(rawPositionMutex);
 
-    int i = idx + offset;
+    unsigned i = idx + offset;
     if (xsRaw.size() <= i) {
         xsRaw.push_back(static_cast<float>(p(0) * viewScale));
         ysRaw.push_back(static_cast<float>(p(1) * viewScale));
@@ -225,7 +225,7 @@ void Viewer::pushPosition(const Eigen::Vector3d& p, const int& offset) {
     // rvp: [rx,ry,rz, vx,vy,vz, px,py,pz]
     std::lock_guard<std::mutex> lockPosition(positionMutex);
 
-    int i = idx + offset;
+    unsigned i = idx + offset;
     if (xs.size() <= i) {
         xs.push_back(static_cast<float>(p(0) * viewScale));
         ys.push_back(static_cast<float>(p(1) * viewScale));
@@ -275,14 +275,14 @@ void Viewer::drawRawPosition() {
     glColor3f(0.6f, 0.2f, 0.2f);
     glPointSize(pointSize);
     glBegin(GL_POINTS);
-    for (int i = 0; i < xsRaw.size(); i++)
+    for (unsigned i = 0; i < xsRaw.size(); i++)
         glVertex3f(xsRaw[i], ysRaw[i], zsRaw[i]);
     glEnd();
 
     glLineWidth(lineWidth);
     glBegin(GL_LINES);
     glVertex3f(xsRaw[0], ysRaw[0], zsRaw[0]);
-    for (int i = 0; i < xsRaw.size(); i++) {
+    for (unsigned i = 0; i < xsRaw.size(); i++) {
         glVertex3f(xsRaw[i], ysRaw[i], zsRaw[i]);
         glVertex3f(xsRaw[i], ysRaw[i], zsRaw[i]);
     }
@@ -308,7 +308,7 @@ void Viewer::drawPosition() {
     glPointSize(pointSize+4);
     glColor3f(0.8f, 0.1f, 0.1f);
     glBegin(GL_POINTS);
-    for (int i = n; i < xs.size(); i++)
+    for (unsigned i = n; i < xs.size(); i++)
         glVertex3f(xs[i], ys[i], zs[i]);
     glEnd();
 
@@ -316,7 +316,7 @@ void Viewer::drawPosition() {
     glColor3f(0.2f, 0.6f, 0.2f);
     glBegin(GL_LINES);
     glVertex3f(xs[0], ys[0], zs[0]);
-    for (int i = 1; i < xsRaw.size() - 1; i++) {
+    for (unsigned i = 1; i < xsRaw.size() - 1; i++) {
         glVertex3f(xs[i], ys[i], zs[i]);
         glVertex3f(xs[i], ys[i], zs[i]);
     }
@@ -330,8 +330,8 @@ void Viewer::drawPose(pangolin::OpenGlMatrix &M) {
     if (!readyToDrawPose) return;
 
     const float &w = cameraSize;
-    const float h = w*0.75;
-    const float z = w*0.5;
+    const float h = w*0.75f;
+    const float z = w*0.5f;
 
     glPushMatrix();
 
@@ -382,7 +382,7 @@ void Viewer::drawLandmark() {
     glColor3f(0.2f, 0.2f, 0.6f);
     for (int i = 0; i < n; i++) {
         std::vector<Eigen::Vector3d>& points = frameAndPoints[i];
-        for (int j = 0; j < points.size(); j++)
+        for (unsigned j = 0; j < points.size(); j++)
             glVertex3f(points[j].x(), points[j].y(), points[j].z());
     }
     glEnd();
@@ -390,9 +390,9 @@ void Viewer::drawLandmark() {
     glPointSize(landmarkSize+2);
     glBegin(GL_POINTS);
     glColor3f(0.8f, 0.1f, 0.1f);
-    for (int i = n; i < frameAndPoints.size(); i++){
+    for (unsigned i = n; i < frameAndPoints.size(); i++){
         std::vector<Eigen::Vector3d>& points = frameAndPoints[i];
-        for (int j = 0; j < points.size(); j++)
+        for (unsigned j = 0; j < points.size(); j++)
             glVertex3f(points[j].x(), points[j].y(), points[j].z());
     }
     glEnd();
@@ -406,7 +406,7 @@ void Viewer::drawLoopConnection() {
     glLineWidth(lineWidth);
     glBegin(GL_LINES);
     glColor3f(0.2f, 0.4f, 0.4f);
-    for (int i = 0; i < loopConnection.size(); i++) {
+    for (unsigned i = 0; i < loopConnection.size(); i++) {
         int idx1 = loopConnection[i].first;
         int idx2 = loopConnection[i].second;
         glVertex3f(xs[idx1], ys[idx1], zs[idx1]);

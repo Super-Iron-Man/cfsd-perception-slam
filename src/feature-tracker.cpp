@@ -2,13 +2,10 @@
 
 namespace cfsd {
 
-FeatureTracker::FeatureTracker(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose) :
-        _pMap(pMap), _pCameraModel(pCameraModel), _verbose(verbose), 
-        _orbLeft(), _orbRight(), _ORBextractorLeft(), _ORBextractorRight(), _roi(), _imgSize(), 
-        _curPixelsL(), _curPixelsR(), _curKeypointsL(), _curKeypointsR(), _curDescriptorsL(), _curDescriptorsR(), _curFeatureMask(), 
-        _histFeatureIDs(), _histKeypointsL(), _histKeypointsR(), _histDescriptorsL(), _histDescriptorsR(), 
-        _refKeypointsL(), _refDescriptorsL(), _matchedFeatureIDs(), _pFeatures() {
-    
+FeatureTracker::FeatureTracker(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose)
+: _pMap(pMap)
+, _pCameraModel(pCameraModel)
+, _verbose(verbose) {
     _matchRatio = Config::get<float>("matchRatio");
 
     _minMatchDist = Config::get<float>("minMatchDist");
@@ -121,14 +118,14 @@ bool FeatureTracker::processImage(const cv::Mat& grayLeft, const cv::Mat& grayRi
     _curFeatureMask.resize(_curDescriptorsL.rows, true);
 
     start = std::chrono::steady_clock::now();
-    externalTrack(true);
+    externalTrack();
     end = std::chrono::steady_clock::now();
     if (_verbose) std::cout << "external match elapsed time: " << std::chrono::duration<double, std::milli>(end-start).count() << "ms" << std::endl << std::endl;
 
     return _matchedFeatureIDs.empty();
 }
 
-void FeatureTracker::internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRight, cv::Mat& descriptorsMat, const bool useRANSAC) {
+void FeatureTracker::internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRight, cv::Mat& descriptorsMat) {
     auto start = std::chrono::steady_clock::now();
     std::vector<cv::KeyPoint> keypointsL, keypointsR;
     cv::Mat descriptorsL, descriptorsR;
@@ -158,7 +155,7 @@ void FeatureTracker::internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRig
 	std::cout << "(internal) GMS matching inliers: " << num_inliers << ", all matches: " << matches.size() << std::endl;
 
 	// Collect inlier matches.
-	for (size_t i = 0; i < vbInliers.size(); ++i) {
+	for (unsigned i = 0; i < vbInliers.size(); ++i) {
 		if (vbInliers[i] == true) {
             auto& m = matches[i];
             _curPixelsL.push_back(keypointsL[m.queryIdx].pt);
@@ -176,10 +173,7 @@ void FeatureTracker::internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRig
     // descriptorsMat = _curDescriptorsL;
 }
 
-void FeatureTracker::externalTrack(const bool useRANSAC) {
-    auto start = std::chrono::steady_clock::now();
-    auto end = std::chrono::steady_clock::now();
-    
+void FeatureTracker::externalTrack() {    
     // At initializing step, there is no available features in the list yet, so all features detected in the first frame will be added to the list.
     // The first frame will be set as keyframe as well.
     if (_pFeatures.empty()) {
@@ -207,7 +201,7 @@ void FeatureTracker::externalTrack(const bool useRANSAC) {
 	std::cout << "(external left) GMS matching inliers: " << num_inliers << ", all matches: " << matchesL.size() << std::endl;
 
     // Collect inlier matches.
-	for (size_t i = 0; i < vbInliersL.size(); ++i)
+	for (unsigned i = 0; i < vbInliersL.size(); ++i)
 		if (vbInliersL[i] == true)
             mapCurHist[matchesL[i].queryIdx] = matchesL[i].trainIdx;
 
@@ -267,7 +261,7 @@ void FeatureTracker::externalTrack(const bool useRANSAC) {
 
     // Collect inlier matches.
     std::unordered_map<size_t, bool> uniqueFeature;
-	for (size_t i = 0; i < vbInliersR.size(); ++i) {
+	for (unsigned i = 0; i < vbInliersR.size(); ++i) {
 		if (vbInliersR[i] == true) {
             rightCount++;
 
@@ -338,7 +332,7 @@ void FeatureTracker::featurePoolUpdate(const long& imgTimestamp) {
     if (_verbose) std::cout << "# features in pool before updating: " << _pFeatures.size() << std::endl;
 
     // _age minus 1, will add 2 later.
-    for (int i = 0; i < _matchedFeatureIDs.size(); i++) {
+    for (unsigned i = 0; i < _matchedFeatureIDs.size(); i++) {
         _pFeatures[_matchedFeatureIDs[i]]->age -= 1;
     }
 
@@ -375,7 +369,7 @@ void FeatureTracker::featurePoolUpdate(const long& imgTimestamp) {
     // _pMap->getBodyPose() gives the transformation from current body frame to world frame, T_WB.
     Sophus::SE3d T_WB = _pMap->getBodyPose();
     
-    for (int i = 0; i < _curFeatureMask.size(); i++) {
+    for (unsigned i = 0; i < _curFeatureMask.size(); i++) {
         // Points4D is in homogeneous coordinates.
         double depth = points4D.at<double>(2,i) / points4D.at<double>(3,i);
 

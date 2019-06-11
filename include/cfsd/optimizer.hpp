@@ -36,8 +36,6 @@ class Optimizer {
     bool linearizeReprojection(const size_t& mapPointID, const int& startFrameID, std::vector<double*>& delta_pose_img, int& errorTerms, Eigen::VectorXd& error, Eigen::MatrixXd F);
 
   private:
-    const bool _verbose;
-
     cfsd::Ptr<Map> _pMap;
 
     cfsd::Ptr<FeatureTracker> _pFeatureTracker;
@@ -46,11 +44,13 @@ class Optimizer {
 
     const cfsd::Ptr<CameraModel>& _pCameraModel;
 
+    const bool _verbose;
+
     double _pose[WINDOWSIZE][6];  // pose (rotation vector, translation vector / position)
     double _v_bga[WINDOWSIZE][9]; // velocity, bias of gyroscope, bias of accelerometer
 
     double _fx{0}, _fy{0}, _cx{0}, _cy{0};
-    Eigen::Matrix2d _invStdT;
+    Eigen::Matrix2d _invStdT{};
     
     double _priorWeight{0.0};
 

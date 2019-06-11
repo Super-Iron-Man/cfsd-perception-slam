@@ -2,7 +2,9 @@
 
 namespace cfsd {
 
-Map::Map(const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose) : _pCameraModel(pCameraModel), _verbose(verbose) {
+Map::Map(const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose)
+: _pCameraModel(pCameraModel)
+, _verbose(verbose) {
     
     _pKeyframes.push_back(std::make_shared<Keyframe>());
 
@@ -163,7 +165,7 @@ void Map::checkKeyframe() {
 
 void Map::manageMapPoints() {
     // If there are too many map points, erase those only seen by few frames.
-    int minFrames = 0;
+    unsigned minFrames = 0;
     if (_pMapPoints.size() > 10000) minFrames = 3;
     else if (_pMapPoints.size() > 8000) minFrames = 2;
     else if (_pMapPoints.size() > 4000) minFrames = 1;
@@ -171,7 +173,7 @@ void Map::manageMapPoints() {
     if (minFrames > 0) {
         auto iter = _pMapPoints.begin();
         // Keep the latest map points untouched.    
-        for (int i = 0; i < _pMapPoints.size() - 1000; i++) {
+        for (unsigned i = 0; i < _pMapPoints.size() - 1000; i++) {
             if (iter->second->pixels.size() <= minFrames)
                 iter = _pMapPoints.erase(iter);
             else
@@ -253,7 +255,7 @@ void Map::updateImuBias(Eigen::Vector3d& bg_i, Eigen::Vector3d& ba_i) {
 }
 
 void Map::updateAllStates(double** delta_pose, double** delta_v_dbga) {
-    for (int i = 0; i < _pKeyframes.size()-1; i++) {
+    for (unsigned i = 0; i < _pKeyframes.size()-1; i++) {
         cfsd::Ptr<Keyframe>& keyframe = _pKeyframes[1+i];
 
         keyframe->dba = keyframe->dba + Eigen::Vector3d(delta_v_dbga[i][6], delta_v_dbga[i][7], delta_v_dbga[i][8]);

@@ -3,8 +3,11 @@
 namespace cfsd {
 
 Optimizer::Optimizer(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<FeatureTracker>& pFeatureTracker, const cfsd::Ptr<ImuPreintegrator>& pImuPreintegrator, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose)
-    : _pMap(pMap), _pFeatureTracker(pFeatureTracker), _pImuPreintegrator(pImuPreintegrator), _pCameraModel(pCameraModel), _verbose(verbose), _invStdT() {
-
+: _pMap(pMap)
+, _pFeatureTracker(pFeatureTracker)
+, _pImuPreintegrator(pImuPreintegrator)
+, _pCameraModel(pCameraModel)
+, _verbose(verbose) {
     _fx = _pCameraModel->_K_L.at<double>(0,0);
     _fy = _pCameraModel->_K_L.at<double>(1,1);
     _cx = _pCameraModel->_K_L.at<double>(0,2);
@@ -92,7 +95,7 @@ void Optimizer::motionOnlyBA() {
             // Eigen::MatrixXd E(2*errorTerms, 3);
             // E.setZero();
             
-            for (int j = 0; j < frameIDs.size(); j++) {
+            for (size_t j = 0; j < frameIDs.size(); j++) {
                 const cfsd::Ptr<Keyframe>& windowFrame = _pMap->_pKeyframes[frameIDs[j]];
 
                 Eigen::Vector3d temp = windowFrame->R.inverse() * (pMapPoint->position - windowFrame->p);
@@ -380,7 +383,7 @@ void Optimizer::loopCorrection(const int& curFrameID) {
             // Eigen::MatrixXd E(2*errorTerms, 3);
             // E.setZero();
             
-            for (int j = 0; j < frameIDs.size(); j++) {
+            for (size_t j = 0; j < frameIDs.size(); j++) {
                 const cfsd::Ptr<Keyframe>& windowFrame = _pMap->_pKeyframes[frameIDs[j]];
 
                 Eigen::Vector3d temp = windowFrame->R.inverse() * (pMapPoint->position - windowFrame->p);
@@ -455,6 +458,7 @@ void Optimizer::loopCorrection(const int& curFrameID) {
 
 void Optimizer::fullBA() {
     int numKeyframes = _pMap->_pKeyframes.size() - 1;
+    numKeyframes++;
     // double** delta_pose = new double*[numKeyframes];
     // double** delta_v_dbga = new double*[numKeyframes];
     // for (int i = 0; i < numKeyframes; i++) {

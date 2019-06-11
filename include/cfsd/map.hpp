@@ -52,9 +52,9 @@ class Map {
     Sophus::SE3d getBodyPose();
   
   private:
-    const bool _verbose;
+    const cfsd::Ptr<CameraModel>& _pCameraModel{};
 
-    const cfsd::Ptr<CameraModel>& _pCameraModel;
+    const bool _verbose{};
 
     // Minimum rotation and translation for selecting a keyframe.
     double _minRotation{0};

@@ -8,12 +8,12 @@ namespace cfsd {
 struct ImuConstraint {
     ImuConstraint() {}
     
-    ImuConstraint(const Eigen::Matrix<double,15,15>& invCovPreintegration_ij, const Eigen::Vector3d& bg_i, const Eigen::Vector3d& ba_i,
-                  const Sophus::SO3d& delta_R_ij, const Eigen::Vector3d& delta_v_ij, const Eigen::Vector3d& delta_p_ij,
-                  const Eigen::Matrix3d& d_R_bg_ij, const Eigen::Matrix3d& d_v_bg_ij, const Eigen::Matrix3d& d_v_ba_ij, 
-                  const Eigen::Matrix3d& d_p_bg_ij, const Eigen::Matrix3d& d_p_ba_ij, const double& dt) : 
-        invCovPreintegration_ij(invCovPreintegration_ij), bg_i(bg_i), ba_i(ba_i), delta_R_ij(delta_R_ij), delta_v_ij(delta_v_ij), delta_p_ij(delta_p_ij),
-        d_R_bg_ij(d_R_bg_ij), d_v_bg_ij(d_v_bg_ij), d_v_ba_ij(d_v_ba_ij), d_p_bg_ij(d_p_bg_ij), d_p_ba_ij(d_p_ba_ij), dt(dt) { dt2 = dt* dt; }
+    ImuConstraint(const Eigen::Matrix<double,15,15>& invCovPreintegration_ij_, const Eigen::Vector3d& bg_i_, const Eigen::Vector3d& ba_i_,
+                  const Sophus::SO3d& delta_R_ij_, const Eigen::Vector3d& delta_v_ij_, const Eigen::Vector3d& delta_p_ij_,
+                  const Eigen::Matrix3d& d_R_bg_ij_, const Eigen::Matrix3d& d_v_bg_ij_, const Eigen::Matrix3d& d_v_ba_ij_, 
+                  const Eigen::Matrix3d& d_p_bg_ij_, const Eigen::Matrix3d& d_p_ba_ij_, const double& dt_) : 
+        invCovPreintegration_ij(invCovPreintegration_ij_), bg_i(bg_i_), ba_i(ba_i_), delta_R_ij(delta_R_ij_), delta_v_ij(delta_v_ij_), delta_p_ij(delta_p_ij_),
+        d_R_bg_ij(d_R_bg_ij_), d_v_bg_ij(d_v_bg_ij_), d_v_ba_ij(d_v_ba_ij_), d_p_bg_ij(d_p_bg_ij_), d_p_ba_ij(d_p_ba_ij_), dt(dt_) { dt2 = dt * dt; }
 
     // Inverse of covariance matrix of preintegrated noise [delta_rvec, delta_v, delta_p, delta_bg, delta_ba]
     Eigen::Matrix<double,15,15> invCovPreintegration_ij{};
@@ -41,8 +41,8 @@ struct ImuConstraint {
 struct Feature {
     Feature() {}
 
-    Feature(const int& frameID, const cv::Point2d& pixelL, const cv::KeyPoint& keypointL, const cv::KeyPoint& keypointR, const cv::Mat& descriptorL, const cv::Mat& descriptorR, const int& age)
-      : frameID(frameID), pixelL(pixelL), keypointL(keypointL), keypointR(keypointR), descriptorL(descriptorL), descriptorR(descriptorR), age(age) {}
+    Feature(const int& frameID_, const cv::Point2d& pixelL_, const cv::KeyPoint& keypointL_, const cv::KeyPoint& keypointR_, const cv::Mat& descriptorL_, const cv::Mat& descriptorR_, const int& age_)
+      : frameID(frameID_), pixelL(pixelL_), keypointL(keypointL_), keypointR(keypointR_), descriptorL(descriptorL_), descriptorR(descriptorR_), age(age_) {}
 
     int frameID{0};
 
@@ -59,8 +59,8 @@ struct Feature {
 struct MapPoint {
     MapPoint() {}
 
-    MapPoint(const Eigen::Vector3d& position, const int& frameID, const cv::Point2d& pixel) : position(position) {
-        addPixel(frameID, pixel);
+    MapPoint(const Eigen::Vector3d& position_, const int& frameID_, const cv::Point2d& pixel_) : position(position_) {
+        addPixel(frameID_, pixel_);
     }
 
     void addPixel(const int& frameID, const cv::Point2d& pixel) {
@@ -91,7 +91,7 @@ struct Keyframe {
 struct LoopInfo {
     LoopInfo() {}
     
-    LoopInfo(const int& loopFrameID, const Sophus::SO3d& R, const Eigen::Vector3d& p) : loopFrameID(loopFrameID), R(R), p(p) {}
+    LoopInfo(const int& loopFrameID_, const Sophus::SO3d& R_, const Eigen::Vector3d& p_) : loopFrameID(loopFrameID_), R(R_), p(p_) {}
 
     int loopFrameID{-1};
     // R and p are transform from loop frame to current frame.

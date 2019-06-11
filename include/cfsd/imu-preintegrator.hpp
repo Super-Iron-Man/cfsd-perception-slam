@@ -46,9 +46,9 @@ class ImuPreintegrator {
     void biasJacobians(const Sophus::SO3d& dR, const Eigen::Matrix3d& Jr, Eigen::Matrix3d& temp);
 
   private:
-    const bool _verbose;
+    cfsd::Ptr<Map> _pMap{};
 
-    cfsd::Ptr<Map> _pMap;
+    const bool _verbose{};
 
     // // A very small number that helps determine if a rotation is close to zero.
     // double _epsilon{1e-5};
@@ -103,12 +103,12 @@ class ImuPreintegrator {
     bool _isInitialized{false};
 
     // Since reading image has some delay, the imu timestamp is ahead of image timestamp, so store the imu data in the queue.
-    std::mutex _dataMutex;
-    std::queue<std::pair<Eigen::Vector3d,Eigen::Vector3d>> _dataQueue;
-    std::queue<long> _timestampQueue;
+    std::mutex _dataMutex{};
+    std::queue<std::pair<Eigen::Vector3d,Eigen::Vector3d>> _dataQueue{};
+    std::queue<long> _timestampQueue{};
 
   public:
-    cfsd::Ptr<ImuConstraint> _ic;
+    cfsd::Ptr<ImuConstraint> _ic{};
 
 };
 

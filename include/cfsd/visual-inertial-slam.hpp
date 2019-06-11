@@ -51,9 +51,9 @@ class VisualInertialSLAM {
     #endif
 
   private:
-    const bool _verbose;
-    
     VIOstate _state;
+    
+    const bool _verbose;
 
     cfsd::Ptr<CameraModel> _pCameraModel;
 
@@ -67,8 +67,11 @@ class VisualInertialSLAM {
 
     cfsd::Ptr<ImuPreintegrator> _pImuPreintegrator;
 
-    Eigen::Vector3d _gyr, _acc;
-    bool _gyrGot{false}, _accGot{false};
+    Eigen::Vector3d _gyr{};
+    bool _gyrGot{false};
+    
+    Eigen::Vector3d _acc{};
+    bool _accGot{false};
 
     int _numNoMatch{0};
 

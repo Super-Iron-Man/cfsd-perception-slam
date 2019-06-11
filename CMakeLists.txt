@@ -21,7 +21,7 @@ if(FOR_CFSD)
     project(cfsd-state-estimation)
 endif()
 
-option(FOR_EUROC "euroc state estimation" OFF)
+option(FOR_EUROC "euroc state estimation" ON)
 if(FOR_EUROC)
     add_definitions(-DEUROC)
     project(euroc-state-estimation)
@@ -53,13 +53,13 @@ set(CMAKE_CXX_FLAGS "-O0 -g")
 #     -fstack-protector \
 #     -fomit-frame-pointer \
 #     -pipe \
-#     -Weffc++")
-    # -Wall -Wextra -Wshadow -Wdeprecated")
+#     -Weffc++ \
+#     -Wall -Wextra -Wshadow -Wdeprecated \
 #     -Wdiv-by-zero -Wfloat-equal -Wfloat-conversion -Wsign-compare -Wpointer-arith \
 #     -Wuninitialized -Wunreachable-code \
 #     -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-but-set-parameter -Wunused-but-set-variable \
 #     -Wunused-value -Wunused-variable -Wunused-result \
-#    -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn")
+#     -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn")
 # Threads are necessary for linking the resulting binaries as UDPReceiver is running in parallel.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

@@ -78,10 +78,8 @@ int main(int argc, char** argv) {
 
     // Sleep for .. seconds, wait for sensor initialization (e.g. camera adjusts its optical parameters).
     // using namespace std::chrono_literals;
-    // auto start = std::chrono::steady_clock::now();
     // std::this_thread::sleep_for(2s);
-    // auto end = std::chrono::steady_clock::now();
-    // std::cout << "Wait " << std::chrono::duration<double, std::milli>(end-start).count() << " ms" << std::endl;
+    // std::cout << "Wait 2s..." << std::endl;
 
     // Set a delegate to be called data-triggered on arrival of a new Envelope for a given message identifier.
     od4.dataTrigger(opendlv::proxy::AngularVelocityReading::ID(), gyrRecived);

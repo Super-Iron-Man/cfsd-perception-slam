@@ -63,20 +63,30 @@ Eigen::Matrix3d rightJacobianInverseSO3(const Eigen::Vector3d& omega) {
 
 
 
-ImuPreintegrator::ImuPreintegrator(const cfsd::Ptr<Map> pMap, const bool verbose) :
-        _pMap(pMap), _verbose(verbose),
-        _covNoiseD(Eigen::Matrix<double,6,6>::Zero()), _covBias(Eigen::Matrix<double,6,6>::Zero()),
-        _covPreintegration_ij(Eigen::Matrix<double,15,15>::Zero()),
-        _bg_i(Eigen::Vector3d::Zero()), _ba_i(Eigen::Vector3d::Zero()),
-        _delta_R_ij(Sophus::SO3d()), _delta_R_ijm1(Sophus::SO3d()),
-        _delta_v_ij(Eigen::Vector3d::Zero()), _delta_v_ijm1(Eigen::Vector3d::Zero()),
-        _delta_p_ij(Eigen::Vector3d::Zero()), _delta_p_ijm1(Eigen::Vector3d::Zero()),
-        _d_R_bg_ij(Eigen::Matrix3d::Zero()), _d_R_bg_ijm1(Eigen::Matrix3d::Zero()),
-        _d_v_bg_ij(Eigen::Matrix3d::Zero()), _d_v_bg_ijm1(Eigen::Matrix3d::Zero()),
-        _d_v_ba_ij(Eigen::Matrix3d::Zero()), _d_v_ba_ijm1(Eigen::Matrix3d::Zero()),
-        _d_p_bg_ij(Eigen::Matrix3d::Zero()), _d_p_bg_ijm1(Eigen::Matrix3d::Zero()),
-        _d_p_ba_ij(Eigen::Matrix3d::Zero()), _d_p_ba_ijm1(Eigen::Matrix3d::Zero()),
-        _dataMutex(), _dataQueue(), _timestampQueue(), _ic() {
+ImuPreintegrator::ImuPreintegrator(const cfsd::Ptr<Map> pMap, const bool verbose)
+: _pMap(pMap)
+, _verbose(verbose)
+, _covNoiseD(Eigen::Matrix<double,6,6>::Zero())
+, _covBias(Eigen::Matrix<double,6,6>::Zero())
+, _covPreintegration_ij(Eigen::Matrix<double,15,15>::Zero())
+, _bg_i(Eigen::Vector3d::Zero())
+, _ba_i(Eigen::Vector3d::Zero())
+, _delta_R_ij(Sophus::SO3d())
+, _delta_R_ijm1(Sophus::SO3d())
+, _delta_v_ij(Eigen::Vector3d::Zero())
+, _delta_v_ijm1(Eigen::Vector3d::Zero())
+, _delta_p_ij(Eigen::Vector3d::Zero())
+, _delta_p_ijm1(Eigen::Vector3d::Zero())
+, _d_R_bg_ij(Eigen::Matrix3d::Zero())
+, _d_R_bg_ijm1(Eigen::Matrix3d::Zero())
+, _d_v_bg_ij(Eigen::Matrix3d::Zero())
+, _d_v_bg_ijm1(Eigen::Matrix3d::Zero())
+, _d_v_ba_ij(Eigen::Matrix3d::Zero())
+, _d_v_ba_ijm1(Eigen::Matrix3d::Zero())
+, _d_p_bg_ij(Eigen::Matrix3d::Zero())
+, _d_p_bg_ijm1(Eigen::Matrix3d::Zero())
+, _d_p_ba_ij(Eigen::Matrix3d::Zero())
+, _d_p_ba_ijm1(Eigen::Matrix3d::Zero()) {
     
     _samplingRate = Config::get<int>("samplingRate");
     _deltaT = 1.0 / (double)_samplingRate;
@@ -85,10 +95,9 @@ ImuPreintegrator::ImuPreintegrator(const cfsd::Ptr<Map> pMap, const bool verbose
 
     _deltaTus = (long)1000000 / _samplingRate;
     
-    double g = Config::get<double>("gravity");
-
     double gyrNoiseD, accNoiseD, gyrBias, accBias;
     #ifdef CFSD
+        double g = Config::get<double>("gravity");
         // Noise density of accelerometer and gyroscope measurements.
         //   Continuous-time model: sigma_g, unit: [rad/(s*sqrt(Hz))] or [rad/sqrt(s)]
         //                          sigma_a, unit: [m/(s^2*sqrt(Hz))] or [m/(s*sqrt(s))]
@@ -164,13 +173,13 @@ void ImuPreintegrator::updateBias() {
 bool ImuPreintegrator::processImu(const long& imgTimestamp) {
     std::lock_guard<std::mutex> dataLock(_dataMutex);
     if (!_isInitialized) {
-        // If image comes earlier.
+        // If image comes earlier, it is viewed as invalid.
         if (imgTimestamp < _timestampQueue.front()) {
             std::cout << "not synchronized: image timestamp is ahead of imu timestamp, wait..." << std::endl;
             return false;
         }
 
-        // Remove imu data that is collected before initialization.
+        // Remove imu data that is collected before the first valid image.
         while (std::abs(imgTimestamp - _timestampQueue.front()) > _deltaTus/2) {
             if (!_timestampQueue.size()) {
                 std::cout << "not synchronized: image timestamp is ahead of imu timestamp, wait..." << std::endl;
@@ -185,6 +194,8 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
     }
     
     int count = 0;
+    // The policy to synchronize two sensors is: if timestamps are close, then they are matched.
+    // (just a very simple strategy that might need improved, doesn't consider issues like data transferring delay, camera shutter type...)
     while (std::abs(imgTimestamp - _timestampQueue.front()) > _deltaTus/2) {
         // Queue might be empty, and error occurs then!
         if (!_timestampQueue.size()) {
@@ -193,7 +204,6 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         }
         Eigen::Vector3d gyr_jm1, acc_jm1;
         gyr_jm1 = _dataQueue.front().first;
-        // Rotate acc measurements to align with ...(earth frame?)
         acc_jm1 = _dataQueue.front().second;
         _dataQueue.pop();
         _timestampQueue.pop();
