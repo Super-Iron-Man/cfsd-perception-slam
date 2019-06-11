@@ -465,11 +465,6 @@ struct AlignmentCostFunction : public ceres::SizedCostFunction<3, /* residuals o
                   x |  / z
                     | /
                     ------ y
-        
-            kitti imu coordinate system
-                  z |  / x
-                    | /
-              y -----
         */
 
         Eigen::Vector3d delta_r;
@@ -480,10 +475,6 @@ struct AlignmentCostFunction : public ceres::SizedCostFunction<3, /* residuals o
         
         #ifdef EUROC
         delta_r << 0.0, parameters[0][0], parameters[0][1];
-        #endif
-
-        #ifdef KITTI
-        delta_r << parameters[0][0], parameters[0][1], 0.0;
         #endif
         
         Eigen::Map<Eigen::Matrix<double,3,1>> residual(residuals);
@@ -501,10 +492,6 @@ struct AlignmentCostFunction : public ceres::SizedCostFunction<3, /* residuals o
             
             #ifdef EUROC
             jacobian_r = Sophus::SO3d::hat(_init_g).rightCols<2>();
-            #endif
-
-            #ifdef KITTI
-            jacobian_r = Sophus::SO3d::hat(_init_g).leftCols<2>();
             #endif
         }
 
@@ -588,11 +575,6 @@ struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
                   x |  / z
                     | /
                     ------ y
-        
-            kitti imu coordinate system
-                  z |  / x
-                    | /
-              y -----
         */
 
         // Rotation.
@@ -606,11 +588,6 @@ struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
         #ifdef EUROC
         delta_r_i << parameters[0][0], 0.0, 0.0;
         delta_r_j << parameters[1][0], 0.0, 0.0;
-        #endif
-
-        #ifdef KITTI
-        delta_r_i << 0.0, 0.0, parameters[0][0];
-        delta_r_j << 0.0, 0.0, parameters[1][0];
         #endif
 
         // Position.
@@ -685,12 +662,6 @@ struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
             jacobian_yaw_p_i.block<3,1>(6,0) = J_p_r.leftCols<1>();
             #endif
 
-            #ifdef KITTI
-            jacobian_yaw_p_i.block<3,1>(0,0) = J_R_r.rightCols<1>();
-            jacobian_yaw_p_i.block<3,1>(3,0) = J_v_r.rightCols<1>();
-            jacobian_yaw_p_i.block<3,1>(6,0) = J_p_r.rightCols<1>();
-            #endif
-
             // jacobian of residual(delta_p_ij) with respect to delta_p_i
             jacobian_yaw_p_i.block<3, 3>(6, 1) = -Eigen::Matrix3d::Identity();
 
@@ -714,10 +685,6 @@ struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
             
             #ifdef EUROC
             jacobian_yaw_p_j.block<3,1>(0,0) = JrInv.leftCols<1>();
-            #endif
-
-            #ifdef KITTI
-            jacobian_yaw_p_j.block<3,1>(0,0) = JrInv.rightCols<1>();
             #endif
 
             // jacobian of residual(delta_p_ij) with respect to delta_p_j
@@ -764,11 +731,6 @@ struct ImageCostFunction4DOF : public ceres::CostFunction {
                   x |  / z
                     | /
                     ------ y
-        
-            kitti imu coordinate system
-                  z |  / x
-                    | /
-              y -----
         */
         Eigen::VectorXd delta(6*_numParameterBlocks);
         for (int i = 0; i < _numParameterBlocks; i++) {
@@ -779,10 +741,6 @@ struct ImageCostFunction4DOF : public ceres::CostFunction {
             
             #ifdef EUROC
             delta.segment<3>(6*i) = Eigen::Vector3d(parameters[i][0], 0.0, 0.0);
-            #endif
-
-            #ifdef KITTI
-            delta.segment<3>(6*i) = Eigen::Vector3d(0.0, 0.0, parameters[i][0]);
             #endif
 
             // delta_p
@@ -806,10 +764,6 @@ struct ImageCostFunction4DOF : public ceres::CostFunction {
                 
                 #ifdef EUROC
                 jacobian_yaw_p.leftCols<1>() = _F.col(6*i);
-                #endif
-
-                #ifdef KITTI
-                jacobian_yaw_p.leftCols<1>() = _F.col(6*i+2);
                 #endif
 
                 jacobian_yaw_p.rightCols<3>() = _F.block(0,6*i+3, _numResiduals,3);

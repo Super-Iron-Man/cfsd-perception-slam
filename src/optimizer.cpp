@@ -238,11 +238,6 @@ void Optimizer::initialAlignment() {
               x |  / z
                 | /
                 ------ y
-    
-        kitti imu coordinate system
-              z |  / x
-                | /
-          y -----
     */
     
     // Find rotation of gravity from the initial body frame to world frame (inertial frame), and refine the gravity magnitude.
@@ -257,10 +252,6 @@ void Optimizer::initialAlignment() {
 
     #ifdef EUROC
     unit_gravity << -1.0, 0.0, 0.0;
-    #endif
-    
-    #ifdef KITTI
-    unit_gravity << 0.0, 0.0, -1.0;
     #endif
     
     ceres::Problem problem; // initial rotation
@@ -283,10 +274,6 @@ void Optimizer::initialAlignment() {
 
     #ifdef EUROC
     _pMap->updateInitialRotation(0, Eigen::Vector3d(0.0, delta_r[0], delta_r[1]));
-    #endif
-    
-    #ifdef KITTI
-    _pMap->updateInitialRotation(0, Eigen::Vector3d(delta_r[0], delta_r[1], 0.0));
     #endif
 }
 

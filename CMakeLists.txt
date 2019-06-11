@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Christian Berger
+# Copyright (C) 2019 Ruguang You
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,12 +25,6 @@ option(FOR_EUROC "euroc state estimation" OFF)
 if(FOR_EUROC)
     add_definitions(-DEUROC)
     project(euroc-state-estimation)
-endif()
-
-option(FOR_KITTI "kitti state estimation" OFF)
-if(FOR_KITTI)
-    add_definitions(-DKITTI)
-    project(kitti-state-estimation)
 endif()
 
 ################################################################################

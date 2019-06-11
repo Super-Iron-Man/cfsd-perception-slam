@@ -110,13 +110,6 @@ ImuPreintegrator::ImuPreintegrator(const cfsd::Ptr<Map> pMap, const bool verbose
         accBias = Config::get<double>("accBias") * g / sqrtDeltaT;
     #endif
 
-    #ifdef KITTI
-        gyrNoiseD = Config::get<double>("gyrNoise") / sqrtDeltaT;
-        accNoiseD = Config::get<double>("accNoise") * g / sqrtDeltaT;
-        gyrBias = Config::get<double>("gyrBias") / sqrtDeltaT;
-        accBias = Config::get<double>("accBias") * g / sqrtDeltaT;
-    #endif
-
     #ifdef EUROC
         gyrNoiseD = Config::get<double>("gyroscope_noise_density") / sqrtDeltaT; // unit: [rad/s]
         accNoiseD = Config::get<double>("accelerometer_noise_density") / sqrtDeltaT; // unit: [m/s^2]
@@ -171,7 +164,7 @@ void ImuPreintegrator::updateBias() {
 bool ImuPreintegrator::processImu(const long& imgTimestamp) {
     std::lock_guard<std::mutex> dataLock(_dataMutex);
     if (!_isInitialized) {
-        // For kitti.
+        // If image comes earlier.
         if (imgTimestamp < _timestampQueue.front()) {
             std::cout << "not synchronized: image timestamp is ahead of imu timestamp, wait..." << std::endl;
             return false;

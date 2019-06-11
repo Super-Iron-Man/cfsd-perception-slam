@@ -26,11 +26,6 @@ Map::Map(const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose) : _pCam
               x |  / z
                 | /
                 ------ y
-    
-        kitti imu coordinate system
-              z |  / x
-                | /
-          y -----
     */
     #ifdef CFSD
     _gravity << 0, 0, g; // for cfsd
@@ -38,10 +33,6 @@ Map::Map(const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose) : _pCam
 
     #ifdef EUROC
     _gravity << -g, 0, 0; // for euroc
-    #endif
-    
-    #ifdef KITTI
-    _gravity << 0, 0, -g; // for kitti
     #endif
 }
 
