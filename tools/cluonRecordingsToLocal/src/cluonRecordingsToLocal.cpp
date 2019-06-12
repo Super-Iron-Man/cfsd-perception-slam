@@ -95,7 +95,7 @@ int32_t main(int32_t argc, char **argv) {
                 if (VERBOSE) {
                     cv::imshow(sharedMemory->name().c_str(), img);
                     cv::waitKey(1);
-                    cv::imwrite("images/" + std::to_string(frameCount) + ".png", img);
+                    cv::imwrite("images/" + std::to_string(ts) + ".png", img);
                     f_img << ts << std::endl;
                 }
 
