@@ -173,6 +173,7 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
             if (_sfmCount == INITWINDOWSIZE) {
                 _sfmCount = 0;
                 _state = INITIALIZING;
+                // sfm BA .........
             }
             else 
                 break;

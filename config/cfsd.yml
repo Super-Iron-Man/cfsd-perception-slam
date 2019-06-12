@@ -2,6 +2,12 @@
 # Camera image resolution, 2560x720(30Hz), 1344x376(60Hz)
 
 ################################################################################
+##### Locally processing settings #####
+dataset: /home/ruguang/docker-CFSD/cfsd/2019/cfsd-slam/tools/cluonRecordingsToLocal/bin/dataset/
+# Skip some images
+speedUp: 1
+
+################################################################################
 ##### OpenDLV settings #####
 # od4 communication
 ellipseID: 112 # sender stamp of proxy-ellipse2n
@@ -131,6 +137,8 @@ maxVerticalPixelDist: 0.1 # selecting good matching by the vertical coordinates 
 maxFeatureAge: 8  # Max age of a feature
 maxDepth: 20 # Max depth or distance w.r.t camera
 
+useCircularMatch: 0
+
 # Image mask (we don't want to detect keypoints in the sky and vehicle body)
 #     #########################
 #     |-----------------------|
@@ -198,7 +206,7 @@ globalOptimize: 0
 
 ################################################################################
 ##### Loop closure settings #####
-vocabulary: ./config/vocabulary/ORBvoc.bin
+vocabulary: ../config/vocabulary/ORBvoc.bin
 minFrameInterval: 40
 minScore: 0.01
 

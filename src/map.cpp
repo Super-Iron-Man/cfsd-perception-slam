@@ -5,7 +5,7 @@ namespace cfsd {
 Map::Map(const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose)
 : _pCameraModel(pCameraModel)
 , _verbose(verbose) {
-    
+    _pKeyframes.reserve(INITWINDOWSIZE);
     _pKeyframes.push_back(std::make_shared<Keyframe>());
 
     _minRotation = Config::get<double>("keyframeRotation");
@@ -108,6 +108,7 @@ void Map::reset(const int& start) {
     _pKeyframes[start] = _pKeyframes[start+INITWINDOWSIZE-1]; // initial keyframe
     int n = _pKeyframes.size()-INITWINDOWSIZE+1;
     _pKeyframes.resize(n);
+    _pKeyframes.reserve(1000);
 }
 
 void Map::pushImuConstraint(const cfsd::Ptr<ImuConstraint>& ic) {

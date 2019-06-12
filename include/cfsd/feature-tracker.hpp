@@ -18,23 +18,33 @@ class FeatureTracker {
   public:
     FeatureTracker(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<CameraModel>& pCameraModel, const bool verbose);
 
-    FeatureTracker(const FeatureTracker&) = delete; // diasble copy constructor
-    FeatureTracker& operator=(const FeatureTracker&) = delete; // disable copy assignment constructor
+    // Diasble copy constructor.
+    FeatureTracker(const FeatureTracker&) = delete;
 
-    // Feature matching and tracking, including:
-    // - internal match (current frame's left and right image)
-    // - external track (current features and past features)
-    // - refinement? (improve the quality of matching)
-    bool processImage(const cv::Mat& imgLeft, const cv::Mat& imgRight, cv::Mat& descriptorsMat);
+    // Disable copy assignment constructor.
+    FeatureTracker& operator=(const FeatureTracker&) = delete;
 
+    // Grid-based detection using OpenCV's ORB.
     void orbDetectWithGrid(int flag, const cv::Mat& img, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors);
 
+    // Use ORB_SLAM2's ORB.
     void extractORB(int flag, const cv::Mat& img, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors);
 
+    // Feature matching and tracking, including:
+    // - internal match
+    // - external track
+    // - filter matches (improve the quality of matching)
+    bool processImage(const cv::Mat& imgLeft, const cv::Mat& imgRight, cv::Mat& descriptorsMat);
+
+    // Match left image features and right image features in current frame.
     void internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRight, cv::Mat& descriptorsMat);
 
+    // Match current features and past features.
     void externalTrack();
 
+    void processMatching(const cv::DMatch& m, std::unordered_map<size_t, bool>& uniqueFeature, std::vector<size_t>& mapPointIDs, cv::Mat& descriptors);
+
+    // Maintain the feature pool or local map.
     void featurePoolUpdate(const long& imgTimestamp);
 
     // SfM: use RANSAC scheme for outlier rejection, and solve 3D-2D PnP problem (in particular, P3P problem).
@@ -52,6 +62,8 @@ class FeatureTracker {
     // For CFSD, only part of the image is considered to be useful.
     // (e.g. the upper half of the image containing sky contributes little to useful features)
     cv::Rect _roi{};
+
+    // Used in GMS matcher.
     cv::Size _imgSize{};
 
     int _frameID{0};
@@ -71,41 +83,51 @@ class FeatureTracker {
     
     // Match distance should be less than max(_matchRatio*minDist, _minMatchDist)
     // Ratio for selecting good matches.
-    float _matchRatio{0};  
+    float _matchRatio{0};
     // Min match distance, based on experience, e.g. 30.0f
     float _minMatchDist{0};
     // For matched pixel (ul, vl) and (ur, vr), |vl-vr| should be small enough if the image has been rectified.
     float _maxVerticalPixelDist{0};
 
+    // Features that stay in the pool for too long time should be be removed.
     int _maxFeatureAge{0};
 
+    // Triangulated depth, if the 3D point is too far it is less accurate, so should not be added to pool.
     double _maxDepth{0};
 
     // Current frame's keypoints' pixel position and descriptors.
-    std::vector<cv::Point2d> _curPixelsL{}, _curPixelsR{};
-    std::vector<cv::KeyPoint> _curKeypointsL{}, _curKeypointsR{};
-    cv::Mat _curDescriptorsL{}, _curDescriptorsR{};
+    std::vector<cv::Point2d> _curPixelsL{};
+    std::vector<cv::KeyPoint> _curKeypointsL{};
+    cv::Mat _curDescriptorsL{};
+    // The information of current right frame is used for triangulation.
+    std::vector<cv::Point2d> _curPixelsR{};
+    std::vector<cv::KeyPoint> _curKeypointsR{};
+    cv::Mat _curDescriptorsR{};
 
     // Record which features in current frame will possibly be viewed as new features, if circular matching is satisfied, it will be false; otherwise, true.
     std::vector<bool> _curFeatureMask{};
 
-    // History features' id and descriptors
-    std::vector<size_t> _histFeatureIDs{};
-    std::vector<cv::KeyPoint> _histKeypointsL{}, _histKeypointsR{};
-    cv::Mat _histDescriptorsL{}, _histDescriptorsR{};
+    // It's possible circular matching being too strict that few matches are left for further computing.
+    bool _useCircularMatch{true};
 
-    // Previous frame's keypoints and descriptors in left image.
+    // History features' id and descriptors.
+    std::vector<size_t> _histFeatureIDs{};
+    std::vector<cv::KeyPoint> _histKeypointsL{};
+    cv::Mat _histDescriptorsL{};
+    // The history information of right frames is used for circular matching.
+    std::vector<cv::KeyPoint> _histKeypointsR{};
+    cv::Mat _histDescriptorsR{};
+
+    // Used in initial SfM, previous frame's keypoints and descriptors in left image.
     std::vector<cv::KeyPoint> _refKeypointsL{};
     cv::Mat _refDescriptorsL{};
+    
+    // Pick one of the methods provided by OpenCV, see config file for detail.
+    int _solvePnP{0};
 
-    // std::vector<cv::KeyPoint> _keypointsL, _keypointsR;
-    // cv::Mat _descriptorsL, _descriptorsR;
-
-    // Minimum rotation and translation for picking solvePnP results.
+    // Used in initial SfM, minimum rotation and translation for picking solvePnP results.
     double _minRotation{0};
     double _minTranslation{0};
-
-    int _solvePnP{0};
 
   public:
     // Features that pass circular matching, i.e. curLeft <=> histLeft <=> histRight <=> curRight <=> curLeft
