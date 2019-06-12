@@ -26,6 +26,7 @@
 #include <fstream>
 #include <memory>
 #include <mutex>
+#include <string>
 
 int32_t main(int32_t argc, char **argv) {
     int32_t retCode{1};
@@ -65,6 +66,9 @@ int32_t main(int32_t argc, char **argv) {
             int m_width = 1344;
             int m_height = 376;
             cv::Size m_size(m_width, m_height);
+
+            std::string mkdir = "rm -rf images && mkdir images";
+            std::cout << mkdir << "..." << system(mkdir.c_str()) << " done" << std::endl;
 
             // Interface to a running OpenDaVINCI session; here, you can send and receive messages.
             cluon::OD4Session od4{static_cast<uint16_t>(std::stoi(commandlineArguments["cid"]))};
