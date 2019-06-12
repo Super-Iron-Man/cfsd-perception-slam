@@ -168,9 +168,9 @@ void Map::checkKeyframe() {
 void Map::manageMapPoints() {
     // If there are too many map points, erase those only seen by few frames.
     unsigned minFrames = 0;
-    if (_pMapPoints.size() > 10000) minFrames = 3;
-    else if (_pMapPoints.size() > 8000) minFrames = 2;
-    else if (_pMapPoints.size() > 4000) minFrames = 1;
+    if (_pMapPoints.size() > 4000) minFrames = 2;
+    // else if (_pMapPoints.size() > 8000) minFrames = 2;
+    else if (_pMapPoints.size() > 2000) minFrames = 1;
 
     if (minFrames > 0) {
         auto iter = _pMapPoints.begin();
@@ -228,6 +228,7 @@ void Map::updateStates(double delta_pose[WINDOWSIZE][6], double delta_v_dbga[WIN
 
         #ifdef USE_VIEWER
         _pViewer->pushPosition(windowFrame->p, i);
+        _pViewer->pushLandmark(_pMapPoints);
         #endif
     }
 
@@ -257,8 +258,8 @@ void Map::updateImuBias(Eigen::Vector3d& bg_i, Eigen::Vector3d& ba_i) {
 }
 
 void Map::updateAllStates(double** delta_pose, double** delta_v_dbga) {
-    for (unsigned i = 0; i < _pKeyframes.size()-1; i++) {
-        cfsd::Ptr<Keyframe>& keyframe = _pKeyframes[1+i];
+    for (unsigned i = 0; i < _pKeyframes.size(); i++) {
+        cfsd::Ptr<Keyframe>& keyframe = _pKeyframes[i];
 
         keyframe->dba = keyframe->dba + Eigen::Vector3d(delta_v_dbga[i][6], delta_v_dbga[i][7], delta_v_dbga[i][8]);
 
@@ -271,8 +272,7 @@ void Map::updateAllStates(double** delta_pose, double** delta_v_dbga) {
         keyframe->R = keyframe->R * Sophus::SO3d::exp(Eigen::Vector3d(delta_pose[i][0], delta_pose[i][1], delta_pose[i][2]));
 
         #ifdef USE_VIEWER
-        _pViewer->resetIdx();
-        _pViewer->pushPosition(keyframe->p, i);
+        _pViewer->pushFullBAPosition(keyframe->p);
         #endif
     }
 

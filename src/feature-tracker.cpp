@@ -363,10 +363,6 @@ void FeatureTracker::featurePoolUpdate(const long& imgTimestamp) {
             _histDescriptorsR.push_back(_curDescriptorsR.row(i));
         }
 
-        #ifdef USE_VIEWER
-        _pMap->_pViewer->pushLandmark(_frameID, position);
-        #endif
-
         _featureID++;
         insertCount++;
     }
