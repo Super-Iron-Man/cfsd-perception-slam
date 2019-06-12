@@ -67,6 +67,7 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
 
             if (emptyMatch) {
                 if(_verbose) std::cout << "Current image frame has no match with history frames!" << std::endl << std::endl;
+                // TODO: lose track condition
                 // if (++_noMatch > 3)
                 //     _state = LOST;
                 break;
@@ -78,7 +79,7 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
             end = std::chrono::steady_clock::now();
             if(_verbose) std::cout << "Motion-only BA elapsed time: " << std::chrono::duration<double, std::milli>(end-start).count() << "ms" << std::endl << std::endl;
   
-            // TODO................................
+            // TODO: reinitialize criteria and handling strategyy
             if (_pMap->_needReinitialize) {
                 if(_verbose) std::cout << "Bias corrupted, need reintialization." << std::endl << std::endl;
                 // _state = INITIALIZING;
@@ -173,7 +174,7 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
             if (_sfmCount == INITWINDOWSIZE) {
                 _sfmCount = 0;
                 _state = INITIALIZING;
-                // sfm BA .........
+                // TODO: Bundle Adjustment on SfM resutles
             }
             else 
                 break;

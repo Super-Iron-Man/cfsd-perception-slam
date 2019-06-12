@@ -13,7 +13,9 @@ Optimizer::Optimizer(const cfsd::Ptr<Map>& pMap, const cfsd::Ptr<FeatureTracker>
     _cx = _pCameraModel->_K_L.at<double>(0,2);
     _cy = _pCameraModel->_K_L.at<double>(1,2);
     _invStdT << 1/_pCameraModel->_stdX, 0, 0, 1/_pCameraModel->_stdY;
-    _priorWeight = Config::get<double>("priorWeight");
+    
+    // TODO: marginalization
+    // _priorWeight = Config::get<double>("priorWeight");
 
     _minimizerProgressToStdout = Config::get<bool>("minimizer_progress_to_stdout");
     _maxNumIterations = Config::get<int>("max_num_iterations");
@@ -168,9 +170,7 @@ void Optimizer::motionOnlyBA() {
 
 void Optimizer::initialGyrBias() {
     double delta_dbg[3] = {0,0,0};
-    
     ceres::Problem problem;
-
     for (int i = 0; i < INITWINDOWSIZE-1; i++) {
         cfsd::Ptr<Keyframe>& sfmFrame1 = _pMap->_pKeyframes[i];
         cfsd::Ptr<Keyframe>& sfmFrame2 = _pMap->_pKeyframes[i+1];
@@ -184,10 +184,10 @@ void Optimizer::initialGyrBias() {
     options.minimizer_progress_to_stdout = false;
     // options.check_gradients = true;
     ceres::Solver::Summary summary;
-
     ceres::Solve(options, &problem, &summary);
     // std::cout << summary.FullReport() << std::endl;
     
+    // Update gyr bias in preintegrator and repropagate preintegrated measurements in map.
     Eigen::Vector3d delta_bg(delta_dbg[0], delta_dbg[1], delta_dbg[2]);
     _pImuPreintegrator->setInitialGyrBias(delta_bg);
     _pMap->repropagate(0, delta_bg, Eigen::Vector3d::Zero());
@@ -202,9 +202,7 @@ void Optimizer::initialGravityVelocity() {
         delta_v[i][1] = 0;
         delta_v[i][2] = 0;
     }
-
     ceres::Problem problem;
-
     for (int i = 0; i < INITWINDOWSIZE-1; i++) {
         cfsd::Ptr<Keyframe>& sfmFrame1 = _pMap->_pKeyframes[i];
         cfsd::Ptr<Keyframe>& sfmFrame2 = _pMap->_pKeyframes[i+1];
@@ -221,15 +219,20 @@ void Optimizer::initialGravityVelocity() {
     options.minimizer_progress_to_stdout = false;
     // options.check_gradients = true;
     ceres::Solver::Summary summary;
-
     ceres::Solve(options, &problem, &summary);
     // std::cout << summary.FullReport() << std::endl;
     
+    // Set the gravity direction in body frame and initial velocity.
     _pMap->setInitialGravity(Eigen::Vector3d(delta_g[0], delta_g[1], delta_g[2]));
     _pMap->updateInitialVelocity(0, delta_v);
 }
 
 void Optimizer::initialAlignment() {
+    // Find rotation of gravity from the initial body frame to world frame (inertial frame), and refine the gravity magnitude.
+    // Only consider rotation around non-gravitational axis.
+    double delta_r[2] = {0,0};
+    Eigen::Vector3d unit_gravity;
+    
     /*  cfsd imu coordinate system
               / x
              /
@@ -242,13 +245,6 @@ void Optimizer::initialAlignment() {
                 | /
                 ------ y
     */
-    
-    // Find rotation of gravity from the initial body frame to world frame (inertial frame), and refine the gravity magnitude.
-
-    // Only consider rotation around non-gravitational axis.
-    double delta_r[2] = {0,0};
-    Eigen::Vector3d unit_gravity;
-    
     #ifdef CFSD
     unit_gravity << 0.0, 0.0, 1.0;
     #endif
@@ -258,7 +254,6 @@ void Optimizer::initialAlignment() {
     #endif
     
     ceres::Problem problem; // initial rotation
-
     ceres::CostFunction* alignmentCost = new AlignmentCostFunction(_pMap->_init_gravity, unit_gravity);
     problem.AddResidualBlock(alignmentCost, nullptr, delta_r);
 
@@ -267,10 +262,10 @@ void Optimizer::initialAlignment() {
     options.minimizer_progress_to_stdout = false;
     // options.check_gradients = true;
     ceres::Solver::Summary summary;
-
     ceres::Solve(options, &problem, &summary);
     // std::cout << summary.FullReport() << std::endl;
 
+    // Apply the gravity alignment rotation to the estimated states in map.
     #ifdef CFSD
     _pMap->updateInitialRotation(0, Eigen::Vector3d(delta_r[0], delta_r[1], 0.0));
     #endif
@@ -282,9 +277,7 @@ void Optimizer::initialAlignment() {
 
 void Optimizer::initialAccBias() {
     double delta_dba[3] = {0,0,0};
-
     ceres::Problem problem; // acc initial bias
-
     for (int i = 0; i < INITWINDOWSIZE-1; i++) {
         cfsd::Ptr<Keyframe>& sfmFrame1 = _pMap->_pKeyframes[i];
         cfsd::Ptr<Keyframe>& sfmFrame2 = _pMap->_pKeyframes[i+1];
@@ -298,15 +291,17 @@ void Optimizer::initialAccBias() {
     options.minimizer_progress_to_stdout = false;
     // options.check_gradients = true;
     ceres::Solver::Summary summary;
-
     ceres::Solve(options, &problem, &summary);
     // std::cout << summary.FullReport() << std::endl;
 
+    // Update acc bias in preintegrator and repropagate preintegrated measurements in map.
     Eigen::Vector3d delta_ba(delta_dba[0], delta_dba[1], delta_dba[2]);
     _pImuPreintegrator->setInitialAccBias(delta_ba);
     _pMap->repropagate(0, Eigen::Vector3d::Zero(), delta_ba);
 }
 
+
+// TODO: loop closure
 void Optimizer::loopCorrection(const int& curFrameID) {
     // std::lock_guard<std::mutex> loopLock(_loopMutex);
     int loopFrameID;
@@ -451,11 +446,7 @@ void Optimizer::loopCorrection(const int& curFrameID) {
 
 
 
-
-
-
-
-
+// TODO: global BA
 void Optimizer::fullBA() {
     int numKeyframes = _pMap->_pKeyframes.size() - 1;
     numKeyframes++;

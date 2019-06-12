@@ -164,6 +164,7 @@ void Map::checkKeyframe() {
         if (_verbose) std::cout << "=> this frame NOT a keyframe" << std::endl << std::endl;
 }
 
+// TODO: bettwe map management
 void Map::manageMapPoints() {
     // If there are too many map points, erase those only seen by few frames.
     unsigned minFrames = 0;

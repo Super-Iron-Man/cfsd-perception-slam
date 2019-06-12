@@ -44,6 +44,9 @@ struct Feature {
     Feature(const int& frameID_, const cv::Point2d& pixelL_, const cv::KeyPoint& keypointL_, const cv::KeyPoint& keypointR_, const cv::Mat& descriptorL_, const cv::Mat& descriptorR_, const int& age_)
       : frameID(frameID_), pixelL(pixelL_), keypointL(keypointL_), keypointR(keypointR_), descriptorL(descriptorL_), descriptorR(descriptorR_), age(age_) {}
 
+    Feature(const int& frameID_, const cv::Point2d& pixelL_, const cv::KeyPoint& keypointL_, const cv::Mat& descriptorL_, const int& age_)
+      : frameID(frameID_), pixelL(pixelL_), keypointL(keypointL_), descriptorL(descriptorL_), age(age_) {}
+    
     int frameID{0};
 
     cv::Point2d pixelL{};

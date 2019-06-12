@@ -107,8 +107,8 @@ bool FeatureTracker::processImage(const cv::Mat& grayLeft, const cv::Mat& grayRi
     _curKeypointsL.clear();
     _curDescriptorsL = cv::Mat();
     
+    _curPixelsR.clear();
     if (_useCircularMatch) {
-        _curPixelsR.clear();
         _curKeypointsR.clear();
         _curDescriptorsR = cv::Mat();
     }
@@ -167,8 +167,8 @@ void FeatureTracker::internalMatch(const cv::Mat& imgLeft, const cv::Mat& imgRig
             _curKeypointsL.push_back(keypointsL[m.queryIdx]);
             _curDescriptorsL.push_back(descriptorsL.row(m.queryIdx));
             
+            _curPixelsR.push_back(keypointsR[m.trainIdx].pt);
             if (_useCircularMatch) {
-                _curPixelsR.push_back(keypointsR[m.trainIdx].pt);
                 _curKeypointsR.push_back(keypointsR[m.trainIdx]);
                 _curDescriptorsR.push_back(descriptorsR.row(m.trainIdx));
             }
@@ -262,7 +262,7 @@ void FeatureTracker::processMatching(const cv::DMatch& m, std::unordered_map<siz
     if (uniqueFeature.find(featureID) != uniqueFeature.end()) return;
     uniqueFeature[featureID] = true;
     
-    // todo.................related to map management................
+    // TODO: related to map points management
     // Some unnecessary map points might have been erased.
     if (_pMap->_pMapPoints.find(featureID) == _pMap->_pMapPoints.end()) return;
     
@@ -349,7 +349,10 @@ void FeatureTracker::featurePoolUpdate(const long& imgTimestamp) {
         descriptors.push_back(_curDescriptorsL.row(i));
 
         // Insert new features.
-        _pFeatures[_featureID] = std::make_shared<Feature>(_frameID, _curPixelsL[i], _curKeypointsL[i], _curKeypointsR[i], _curDescriptorsL.row(i), _curDescriptorsR.row(i), 0);
+        if (_useCircularMatch)
+            _pFeatures[_featureID] = std::make_shared<Feature>(_frameID, _curPixelsL[i], _curKeypointsL[i], _curKeypointsR[i], _curDescriptorsL.row(i), _curDescriptorsR.row(i), 0);
+        else
+            _pFeatures[_featureID] = std::make_shared<Feature>(_frameID, _curPixelsL[i], _curKeypointsL[i], _curDescriptorsL.row(i), 0);
         
         // Add these new features' descriptors to _hist for the convenience of next external matching.
         _histFeatureIDs.push_back(_featureID);
