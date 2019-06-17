@@ -206,7 +206,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         gyr_jm1 = _dataQueue.front().first;
         acc_jm1 = _dataQueue.front().second;
         _dataQueue.pop();
-        std::cout << "  imu timestamp: " << _timestampQueue.front() << std::endl;
+        // std::cout << "  imu timestamp: " << _timestampQueue.front() << std::endl;
         _timestampQueue.pop();
         count++;
 
@@ -234,7 +234,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         // Update number of frames.
         _dt += _deltaT;
     }
-    std::cout << "image timestamp: " << imgTimestamp << std::endl << std::endl;
+    // std::cout << "image timestamp: " << imgTimestamp << std::endl << std::endl;
 
     if (_verbose) std::cout << "number of imu measurements preintegrated: " << count << std::endl;
 

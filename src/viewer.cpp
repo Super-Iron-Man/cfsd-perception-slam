@@ -338,6 +338,25 @@ void Viewer::drawPose(pangolin::OpenGlMatrix &M) {
     glLineWidth(cameraLineWidth);
     glColor3f(0.6f,0.2f,0.2f);
     glBegin(GL_LINES);
+
+    #ifdef CFSD
+    glVertex3f(0,0,0);
+    glVertex3f(z,w,h);
+    glVertex3f(0,0,0);
+    glVertex3f(z,w,-h);
+    glVertex3f(0,0,0);
+    glVertex3f(z,-w,-h);
+    glVertex3f(0,0,0);
+    glVertex3f(z,-w,h);
+    glVertex3f(z,w,h);
+    glVertex3f(z,w,-h);
+    glVertex3f(z,-w,h);
+    glVertex3f(z,-w,-h);
+    glVertex3f(z,-w,h);
+    glVertex3f(z,w,h);
+    glVertex3f(z,-w,-h);
+    glVertex3f(z,w,-h);
+    #else
     glVertex3f(0,0,0);
     glVertex3f(w,h,z);
     glVertex3f(0,0,0);
@@ -346,18 +365,15 @@ void Viewer::drawPose(pangolin::OpenGlMatrix &M) {
     glVertex3f(-w,-h,z);
     glVertex3f(0,0,0);
     glVertex3f(-w,h,z);
-
     glVertex3f(w,h,z);
     glVertex3f(w,-h,z);
-
     glVertex3f(-w,h,z);
     glVertex3f(-w,-h,z);
-
     glVertex3f(-w,h,z);
     glVertex3f(w,h,z);
-
     glVertex3f(-w,-h,z);
     glVertex3f(w,-h,z);
+    #endif
     glEnd();
 
     glPopMatrix();

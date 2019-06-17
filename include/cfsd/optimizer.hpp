@@ -61,6 +61,8 @@ class Optimizer {
     // TODO: marginalization
     // double _priorWeight{0.0};
 
+    bool _estimateExtrinsics{false};
+
     // Ceres solver settings.
     bool _minimizerProgressToStdout{true};
     int _maxNumIterations{0};

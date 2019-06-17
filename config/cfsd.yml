@@ -110,7 +110,7 @@ delay: 10
 cvORB: 0 # default: not use OpenCV ORB
 
 # ORB feature detector parameters
-numberOfFeatures: 1200
+numberOfFeatures: 400
 scaleFactor: 1.2
 levelPyramid: 8
 
@@ -128,7 +128,7 @@ gridCol: 1
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
 # You can lower these values if your images have low contrast			
 iniThFAST: 20
-minThFAST: 7
+minThFAST: 11
 
 # Feature matching parameters
 matchRatio: 2    # the distance of a good match should be smaller than minDist*matchRatio
@@ -199,7 +199,7 @@ gravity: 9.81734 # [m/s^2] gravitational acceleration (might need slightly modif
 priorWeight: 1e-5
 
 # Loop Closure
-loopClosure: 0
+loopClosure: 1
 
 # Global optimization
 globalOptimize: 0
@@ -207,7 +207,7 @@ globalOptimize: 0
 ################################################################################
 ##### Loop closure settings #####
 vocabulary: ../config/vocabulary/ORBvoc.bin
-minFrameInterval: 40
+minFrameInterval: 20
 minScore: 0.01
 
 ################################################################################
@@ -218,9 +218,9 @@ landmarkSize: 2
 cameraSize: 0.4
 cameraLineWidth: 3
 lineWidth: 2
-viewpointX: -0.1
+viewpointX: -10
 viewpointY: 0
-viewpointZ: -10
+viewpointZ: 0
 viewpointF: 2000
 background: 0 # 0-black, 1-white
 ## world frame

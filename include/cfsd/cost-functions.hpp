@@ -70,6 +70,7 @@ struct FullBAFunction : public ceres::CostFunction {
     Eigen::MatrixXd _E;
 };
 
+
 struct ImageCostFunction : public ceres::CostFunction {
     ImageCostFunction(const int& n, const Eigen::MatrixXd& error, const Eigen::MatrixXd& F)
         : _numResiduals(error.size()), _numParameterBlocks(n), _error(error), _F(F){
