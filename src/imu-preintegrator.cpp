@@ -180,7 +180,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         }
 
         // Remove imu data that is collected before the first valid image.
-        while (std::abs(imgTimestamp - _timestampQueue.front()) > _deltaTus/2) {
+        while (_timestampQueue.front() - imgTimestamp < _deltaTus/2) {
             if (!_timestampQueue.size()) {
                 std::cout << "not synchronized: image timestamp is ahead of imu timestamp, wait..." << std::endl;
                 return false;
@@ -196,7 +196,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
     int count = 0;
     // The policy to synchronize two sensors is: if timestamps are close, then they are matched.
     // (just a very simple strategy that might need improved, doesn't consider issues like data transferring delay, camera shutter type...)
-    while (std::abs(imgTimestamp - _timestampQueue.front()) > _deltaTus/2) {
+    while (_timestampQueue.front() - imgTimestamp < _deltaTus/2) {
         // Queue might be empty, and error occurs then!
         if (!_timestampQueue.size()) {
             std::cerr << "Error: image timestamp is ahead of imu timestamp!" << std::endl;
@@ -206,6 +206,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         gyr_jm1 = _dataQueue.front().first;
         acc_jm1 = _dataQueue.front().second;
         _dataQueue.pop();
+        // std::cout << "  imu timestamp: " << _timestampQueue.front() << std::endl;
         _timestampQueue.pop();
         count++;
 
@@ -233,6 +234,7 @@ bool ImuPreintegrator::processImu(const long& imgTimestamp) {
         // Update number of frames.
         _dt += _deltaT;
     }
+    // std::cout << "image timestamp: " << imgTimestamp << std::endl << std::endl;
 
     if (_verbose) std::cout << "number of imu measurements preintegrated: " << count << std::endl;
 

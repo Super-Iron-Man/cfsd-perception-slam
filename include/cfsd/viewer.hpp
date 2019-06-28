@@ -6,6 +6,7 @@
 
 #include "cfsd/common.hpp"
 #include "cfsd/config.hpp"
+#include "cfsd/structs.hpp"
 
 #include <pangolin/pangolin.h>
 
@@ -23,15 +24,16 @@ class Viewer {
     // Execute in an independent thread for rendering.
     void run();
 
-    void genOpenGlMatrix(const Eigen::Matrix3f& R, const float& x, const float& y, const float& z, pangolin::OpenGlMatrix& M);
+    void genOpenGlMatrix(const Eigen::Matrix3f& R, const Eigen::Vector3d& p, pangolin::OpenGlMatrix& M);
 
     void followBody(pangolin::OpenGlRenderState& s_cam);
 
     void pushRawPosition(const Eigen::Vector3d& p, const int& offset);
     void pushPosition(const Eigen::Vector3d& p, const int& offset);
     void pushPose(const Eigen::Matrix3d& R);
-    void pushLandmark(const int& frameID, const Eigen::Vector3d& point);
+    void pushLandmark(const std::map<size_t, cfsd::Ptr<MapPoint>>& pMPs);
     void pushLoopConnection(const int& refFrameID, const int& curFrameID);
+    void pushFullBAPosition(const Eigen::Vector3d& p);
     
     void drawCoordinate();
     void drawRawPosition();
@@ -39,8 +41,7 @@ class Viewer {
     void drawPose(pangolin::OpenGlMatrix &M);
     void drawLandmark();
     void drawLoopConnection();
-
-    void resetIdx();
+    void drawFullBAPosition();
 
   private:
     // Viewer settings (refer to ORB-SLAM2).
@@ -51,10 +52,11 @@ class Viewer {
     int background{0};
 
     // States.
-    std::vector<float> xs{}, ys{}, zs{};
-    std::vector<float> xsRaw{}, ysRaw{}, zsRaw{};
-    std::vector<std::vector<Eigen::Vector3d>> frameAndPoints{};
+    std::vector<Eigen::Vector3d> positions{};
+    std::vector<Eigen::Vector3d> rawPositions{};
+    std::map<size_t, cfsd::Ptr<MapPoint>> pMapPoints{};
     std::vector<std::pair<int,int>> loopConnection{};
+    std::vector<Eigen::Vector3d> fullBAPositions{};
 
     Eigen::Matrix3f pose{};
     pangolin::OpenGlMatrix T_WB{};
@@ -64,8 +66,9 @@ class Viewer {
     bool readyToDrawPose{false}, readyToDrawRawPose{false};
     bool readyToDrawLandmark{false};
     bool readyToDrawLoop{false};
+    bool readyToDrawFullBAPosition{false};
 
-    std::mutex positionMutex{}, rawPositionMutex{}, poseMutex{}, landmarkMutex{}, loopMutex{};
+    std::mutex positionMutex{}, rawPositionMutex{}, poseMutex{}, landmarkMutex{}, loopMutex{}, fullBAPositionMutex{};
 
     int idx{0};
 };

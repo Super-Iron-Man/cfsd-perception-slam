@@ -15,13 +15,14 @@
 
 cmake_minimum_required(VERSION 3.2)
 
-option(FOR_CFSD "cfsd state estimation" OFF)
+option(FOR_CFSD "cfsd state estimation" ON)
 if(FOR_CFSD)
     add_definitions(-DCFSD)
-    project(cfsd-state-estimation)
+    # project(cfsd-state-estimation)
+    project(cfsd)
 endif()
 
-option(FOR_EUROC "euroc state estimation" ON)
+option(FOR_EUROC "euroc state estimation" OFF)
 if(FOR_EUROC)
     add_definitions(-DEUROC)
     project(euroc-state-estimation)

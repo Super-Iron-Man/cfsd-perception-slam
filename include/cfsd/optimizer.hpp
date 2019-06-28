@@ -20,20 +20,23 @@ class Optimizer {
     */
     void motionOnlyBA();
 
-    // Estimate initial IMU bias, align initial IMU acceleration to gravity.
-    void initialGravityVelocity();
-    
-    void initialAlignment();
-
+    // Estimate initial gyroscope bias, using rotation residuals.
     void initialGyrBias();
 
+    // Eisimate initial gravity direction in body frame and body velocity, using velocity and position residuals.
+    void initialGravityVelocity();
+    
+    // Align the gravity in body coordinate to world coordinate, and refine the magnitude.
+    void initialAlignment();
+
+    // Estimate initial accelerometer bias, using velocity and position residuals.
     void initialAccBias();
 
     void loopCorrection(const int& curFrameID);
 
     void fullBA();
 
-    bool linearizeReprojection(const size_t& mapPointID, const int& startFrameID, std::vector<double*>& delta_pose_img, int& errorTerms, Eigen::VectorXd& error, Eigen::MatrixXd F);
+    // bool linearizeReprojection(const size_t& mapPointID, const int& startFrameID, std::vector<double*>& delta_pose_img, int& errorTerms, Eigen::VectorXd& error, Eigen::MatrixXd F);
 
   private:
     cfsd::Ptr<Map> _pMap;
@@ -49,11 +52,18 @@ class Optimizer {
     double _pose[WINDOWSIZE][6];  // pose (rotation vector, translation vector / position)
     double _v_bga[WINDOWSIZE][9]; // velocity, bias of gyroscope, bias of accelerometer
 
+    // Camera intrinsics.
     double _fx{0}, _fy{0}, _cx{0}, _cy{0};
+    
+    // Inverse of pixel standard deviation.
     Eigen::Matrix2d _invStdT{};
     
-    double _priorWeight{0.0};
+    // TODO: marginalization
+    // double _priorWeight{0.0};
 
+    bool _estimateExtrinsics{false};
+
+    // Ceres solver settings.
     bool _minimizerProgressToStdout{true};
     int _maxNumIterations{0};
     double _maxSolverTimeInSeconds{0.0};

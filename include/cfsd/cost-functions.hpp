@@ -70,6 +70,7 @@ struct FullBAFunction : public ceres::CostFunction {
     Eigen::MatrixXd _E;
 };
 
+
 struct ImageCostFunction : public ceres::CostFunction {
     ImageCostFunction(const int& n, const Eigen::MatrixXd& error, const Eigen::MatrixXd& F)
         : _numResiduals(error.size()), _numParameterBlocks(n), _error(error), _F(F){
@@ -340,6 +341,7 @@ struct BiasGyrCostFunction : public ceres::SizedCostFunction<3, /* residuals of 
         
         Eigen::Map<Eigen::Vector3d> residual(residuals);
 
+        // residual(delta_R_ij)
         residual = ((_ic->delta_R_ij * Sophus::SO3d::exp(_ic->d_R_bg_ij * delta_dbg_i)).inverse() * _R_i.inverse() * _R_j).log();
 
         Eigen::Matrix3d Lt = Eigen::LLT<Eigen::Matrix3d>(_ic->invCovPreintegration_ij.block<3,3>(0,0)).matrixL().transpose();
@@ -353,6 +355,7 @@ struct BiasGyrCostFunction : public ceres::SizedCostFunction<3, /* residuals of 
         if (jacobians[0]) {
             Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>> jacobian_dbg(jacobians[0]);
             
+            // delta_R_ij w.r.t delta_dbg
             jacobian_dbg = -rightJacobianInverseSO3(residual_R) * Sophus::SO3d::exp(residual_R).matrix().transpose() * _ic->d_R_bg_ij;
 
             jacobian_dbg = Lt * jacobian_dbg;
@@ -466,7 +469,6 @@ struct AlignmentCostFunction : public ceres::SizedCostFunction<3, /* residuals o
                     | /
                     ------ y
         */
-
         Eigen::Vector3d delta_r;
 
         #ifdef CFSD
@@ -555,6 +557,7 @@ struct AccCostFunction : public ceres::SizedCostFunction<6, /* residuals of delt
     const Eigen::Vector3d& _p_j;
     const Eigen::Vector3d& _gravity;
 };
+
 
 struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
                                                              4, /* increment of yaw and position at time i */
@@ -704,6 +707,7 @@ struct ImuCostFunction4DOF : public ceres::SizedCostFunction<9, /* residuals */
     const cfsd::Ptr<Map>& _pMap;
     int _idx;
 };
+
 
 struct ImageCostFunction4DOF : public ceres::CostFunction {
     ImageCostFunction4DOF(const int& n, const Eigen::MatrixXd& error, const Eigen::MatrixXd& F)
