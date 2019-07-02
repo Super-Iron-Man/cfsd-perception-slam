@@ -9,6 +9,11 @@
 #include "cfsd/optimizer.hpp"
 #include "cfsd/map.hpp"
 
+#ifdef CLUON
+#include "cluon-complete.hpp"
+#include "opendlv-standard-message-set.hpp"
+#endif
+
 #ifdef USE_VIEWER
 #include "cfsd/viewer.hpp"
 #endif
@@ -36,6 +41,10 @@ class VisualInertialSLAM {
   public:
     VisualInertialSLAM(const bool verbose);
 
+    #ifdef CLUON
+    VisualInertialSLAM(cluon::OD4Session* od4, const bool verbose);
+    #endif
+
     #ifdef USE_VIEWER
     void setViewer(const cfsd::Ptr<Viewer>& pViewer) { _pMap->_pViewer = pViewer; }
     #endif
@@ -46,6 +55,10 @@ class VisualInertialSLAM {
 
     void saveResults();
 
+    #ifdef CLUON
+    void od4sendGroundSpeed();
+    #endif
+
     #ifdef SHOW_IMG
     void showImage(cv::Mat& imgL, const double& dt);
     #endif
@@ -54,6 +67,10 @@ class VisualInertialSLAM {
     VIOstate _state;
     
     const bool _verbose;
+
+    #ifdef CLUON
+    cluon::OD4Session* _od4{};
+    #endif
 
     cfsd::Ptr<CameraModel> _pCameraModel;
 

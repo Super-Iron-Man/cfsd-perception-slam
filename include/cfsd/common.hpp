@@ -21,7 +21,7 @@
 #include <chrono>           // C++ time utilities
 #include <string>           // std::basic_string class template
 #include <algorithm>        // algorithms that operate on ranges (std::move, std::min, std::max, ...)
-#include <cmath>             // common mathematics functions
+#include <cmath>            // common mathematics functions
 
 // std thread support
 #include <thread>           // std::thread class and supporting functions

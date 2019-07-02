@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     // const long imgDeltaTus = (long)1000000 / cfsd::Config::get<int>("cameraFrequency");
 
     // Interface to VI-SLAM.
-    cfsd::Ptr<cfsd::VisualInertialSLAM> pVISLAM{new cfsd::VisualInertialSLAM(verbose)};
+    cfsd::Ptr<cfsd::VisualInertialSLAM> pVISLAM{new cfsd::VisualInertialSLAM(&od4, verbose)};
 
     // Sender stamp of microservice opendlv-proxy-ellipse2n
     const int ellipseID = cfsd::Config::get<int>("ellipseID");

@@ -157,7 +157,7 @@ void Optimizer::motionOnlyBA() {
     
     // if (_verbose) {
         // Show the report.
-        // std::cout << summary.BriefReport() << std::endl;
+        std::cout << summary.BriefReport() << std::endl;
         // std::cout << summary.FullReport() << std::endl;
     // }
 

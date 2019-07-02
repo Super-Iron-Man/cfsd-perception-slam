@@ -34,6 +34,13 @@ VisualInertialSLAM::VisualInertialSLAM(const bool verbose)
     #endif
 }
 
+#ifdef CLUON
+VisualInertialSLAM::VisualInertialSLAM(cluon::OD4Session* od4, const bool verbose)
+: VisualInertialSLAM(verbose) {
+    _od4 = od4;
+}
+#endif
+
 bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, const long& imgTimestamp) {
     // Remap to undistorted and rectified image (detection mask needs to be updated)
     // cv::remap (about 3~5 ms) takes less time than cv::undistort (about 20~30 ms) method
@@ -73,12 +80,21 @@ bool VisualInertialSLAM::process(const cv::Mat& grayL, const cv::Mat& grayR, con
                 break;
             }
 
+            // #ifdef SHOW_IMG
+            // showImage(imgL, 0);
+            // #endif
+
             // Perform motion-only BA.
             start = std::chrono::steady_clock::now();
             _pOptimizer->motionOnlyBA();
             end = std::chrono::steady_clock::now();
             if(_verbose) std::cout << "Motion-only BA elapsed time: " << std::chrono::duration<double, std::milli>(end-start).count() << "ms" << std::endl << std::endl;
   
+            // TODO: send out estimated velocity, position, yaw rate
+            #ifdef CLUON
+            od4sendGroundSpeed();
+            #endif
+
             // TODO: reinitialize criteria and handling strategyy
             if (_pMap->_needReinitialize) {
                 if(_verbose) std::cout << "Bias corrupted, need reintialization." << std::endl << std::endl;
@@ -337,6 +353,24 @@ void VisualInertialSLAM::saveResults() {
     #endif
 }
 
+#ifdef CLUON
+// 2500 is the sender stamp of SLAM microservice
+// ## world frame
+// ##     / x
+// ##    /
+// ##   ------ y
+// ##   |
+// ##   | z
+void VisualInertialSLAM::od4sendGroundSpeed() {
+    const Eigen::Vector3d& v = _pMap->_pKeyframes.back()->v;
+    float speed = static_cast<float>(std::sqrt(v.y()*v.y() + v.z()*v.z()));
+    cluon::data::TimeStamp sampleTime{cluon::time::now()};
+    opendlv::proxy::GroundSpeedReading gs;
+    gs.groundSpeed(speed);
+    _od4->send(gs, sampleTime, 2500);
+}
+#endif
+
 #ifdef SHOW_IMG
 void VisualInertialSLAM::showImage(cv::Mat& imgL, const double& dt) {
     // Show pixels and reprojected pixels after optimization.
@@ -360,9 +394,16 @@ void VisualInertialSLAM::showImage(cv::Mat& imgL, const double& dt) {
     cv::Mat out;
     cv::vconcat(imgL, cv::Mat::zeros(25, imgL.cols, CV_8U), out);
     std::stringstream text;
-    text << " fps: " << std::round(1000.0f/dt) << ", #keyframes: " << _pMap->_pKeyframes.size()-1 << ", #map points: " << _pMap->_pMapPoints.size() << ", #points in current frame: " << latestFrame->mapPointIDs.size();
-    cv::putText(out, text.str(), cv::Point(4, out.rows-8), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255), 1);
-    cv::imshow("pixel (black square) vs. reprojected pixel (white circle)", out);
+    if (dt) {
+        text << " fps: " << std::round(1000.0f/dt) << ", #keyframes: " << _pMap->_pKeyframes.size()-1 << ", #map points: " << _pMap->_pMapPoints.size() << ", #points in current frame: " << latestFrame->mapPointIDs.size();
+        cv::putText(out, text.str(), cv::Point(4, out.rows-8), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255), 1);
+        cv::imshow("pixel (black square) vs. reprojected pixel (white circle)", out);
+    }
+    else {
+        text << " fps: NaN, #keyframes: " << _pMap->_pKeyframes.size()-1 << ", #map points: " << _pMap->_pMapPoints.size() << ", #points in current frame: " << latestFrame->mapPointIDs.size();
+        cv::putText(out, text.str(), cv::Point(4, out.rows-8), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255), 1);
+        cv::imshow("unoptimized: pixel (black square) vs. reprojected pixel (white circle)", out);
+    }
     cv::waitKey(Config::get<int>("delay"));
 }
 #endif
